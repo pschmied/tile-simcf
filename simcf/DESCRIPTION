@@ -1,15 +1,19 @@
 Package: simcf
-Title: Counterfactuals and confidence intervals for estimated models 
-Version: 0.2.9
-Date: 2012-03-01
-Author: Christopher Adolph
-Description:  Calculate counterfactual expected values and first 
-              differences for a variety of statistical models 
+Title: Counterfactuals and confidence intervals for estimated models
+Version: 0.3.0
+Date: 2014-10-31
+Authors@R: c(person("Christopher", "Adolph", role = c("aut", "cre"),
+                    email = "cadolph@uw.edu"),
+             person("Peter", "Schmiedeskamp", role = c("ctb"),
+                    email = "pschmied@uw.edu"))
+Author: Christopher Adolph, with contributions from Peter Schmiedeskamp
+Description:  Calculate counterfactual expected values and first
+              differences for a variety of statistical models
               (e.g., logit, probit, multinomial logit), along with
               confidence intervals.  Useful for producing inputs to tile
-              graphics such as ropeladder and lineplot.  (See Zelig 
-              for different and extensive facilities along these lines.)  
-              Also includes numerous utility functions.       
+              graphics such as ropeladder and lineplot.  (See Zelig
+              for different and extensive facilities along these lines.)
+              Also includes numerous utility functions.
 Maintainer: Christopher Adolph <cadolph@uw.edu>
 License: GPL version 2 or later
 Suggests: MASS, tile, verification, WhatIf
