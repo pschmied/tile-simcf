@@ -25,10 +25,10 @@ cfFactorial <- function(...,formula=NULL,data=NULL,names=NULL,hull=FALSE,f="mean
         }
         list(ctr=ctr,nexttoincr=nexttoincr)
     }
-    
+
     factors <- list(...)
     vars <- names(factors)
-    
+
     nfact <- length(factors)
     if (nfact>1) {
         ufact <- list()
@@ -38,13 +38,13 @@ cfFactorial <- function(...,formula=NULL,data=NULL,names=NULL,hull=FALSE,f="mean
             maxctr <- c(maxctr,length(ufact[[i]]))
         }
         cfact <- as.data.frame(t(rep(NA,length(vars))))
-        colnames(cfact) <- vars    
+        colnames(cfact) <- vars
         ctr <- rep(1,nfact)
         nexttoincr <- 1
         done <- all(ctr==maxctr)
         while (!done) {
             newcfact <- NULL
-            for (i in 1:nfact) newcfact <- c(newcfact, ufact[[i]][ctr[i]])        
+            for (i in 1:nfact) newcfact <- c(newcfact, ufact[[i]][ctr[i]])
             cfact <- rbind(cfact,newcfact)
             done <- all(ctr==maxctr)
             if (!done) {
@@ -56,7 +56,7 @@ cfFactorial <- function(...,formula=NULL,data=NULL,names=NULL,hull=FALSE,f="mean
         cfact <- cfact[2:nrow(cfact),]
     } else {
         cfact <- as.data.frame(factors[[1]])
-        colnames(cfact) <- vars   
+        colnames(cfact) <- vars
     }
         row.names(cfact) <- seq(1:nrow(cfact))
     if (!is.null(names)) {
@@ -76,11 +76,11 @@ cfFactorial <- function(...,formula=NULL,data=NULL,names=NULL,hull=FALSE,f="mean
             sdata <- na.omit(sdata)
             xmean <- apply(sdata,2,f)
             cfact2 <- as.data.frame(matrix(data=xmean,nrow=nrow(cfact),ncol=ncol(sdata),byrow=TRUE))
-            colnames(cfact2) <- colnames(sdata)   
+            colnames(cfact2) <- colnames(sdata)
         }
     }
 
-    # Construct list    
+    # Construct list
     xscen <- list(x=NULL,xpre=NULL)
     if (is.null(cfact2))
         xscen$x <- cfact
@@ -115,9 +115,50 @@ cfFactorial <- function(...,formula=NULL,data=NULL,names=NULL,hull=FALSE,f="mean
         }
     }
 
-    
+
     xscen
 }
+
+cfMake2 <- function(formula, data, hull=TRUE,
+                    f=mean, fargs=NULL, ...) {
+    # Takes a formula, data referenced in formula, and optionally a
+    # function to apply to the data, optional args to f, and an
+    # arbitrary number of named vectors representing scenarios Returns
+    # a list that looks like a counterfactual object from the simcf
+    # package
+
+    # First assemble the data
+    fterms <- all.vars(formula)
+    df <- subset(data, select=fterms)
+    df <- na.omit(df)
+
+    # Get all combinations of scenarios
+    scenarios <- list(...)
+    scenexp <- do.call(expand.grid, scenarios) # expost
+    nscen <- length(scenexp[,1])
+
+    # Apply our function to populate xpre
+    xf <- apply(df, 2, f) # assumes f returns 1 obs/obs
+    xpre <- as.data.frame(t(xf))[rep(1, nscen),]
+
+    # Now create a dataframe with the appropriate counterfactual
+    # variables spliced in.
+    keepterms <- setdiff(fterms, names(scenarios))
+    xunsort <- cbind(subset(xpre, select=keepterms), scenexp)
+    x <- subset(xunsort, select=fterms)
+
+    cfscen <-list(x=x, xpre=xpre, model=formula)
+    class(cfscen) <- c("list","counterfactual")
+
+    # Check for extrapolation
+    if (hull&&(!is.null(formula))&&(!is.null(data))) {
+      cfscen <- findExtrapoled(cfscen, df)
+    }
+
+    cfscen
+}
+
+
 
 cfMake <- function(formula=NULL,data,nscen=1,names=NULL,hull=FALSE,f="mean",...) {
     if (!is.null(formula)) {
@@ -140,11 +181,11 @@ cfMake <- function(formula=NULL,data,nscen=1,names=NULL,hull=FALSE,f="mean",...)
 
       # Get terms attribute
       tl <- attributes(terms(formula))$term.labels
-      
+
       # Loop over terms
       for (i in 1:length(tl)) {
         tlCur <- tl[i]
-      
+
         # Check for logitBound transformations
         if (substr(tlCur,1,11)=="logitBound(") {
           # if found, check number of terms needed.
@@ -152,7 +193,7 @@ cfMake <- function(formula=NULL,data,nscen=1,names=NULL,hull=FALSE,f="mean",...)
           subform <- as.formula(paste("~",varname,"-1"))
           toLT <- as.vector(model.matrix(subform,data=data))
           testLT <- as.matrix(logitBound(toLT))
-        
+
           # revise formula so logitBound() call includes "forceAny" and/or "forceAll" as needed
           if (any(colnames(testLT)=="any")) {
             tlCur <- paste(substr(tlCur,start=1,stop=nchar(tlCur)-1), ", forceAny=TRUE)",sep="")
@@ -166,13 +207,13 @@ cfMake <- function(formula=NULL,data,nscen=1,names=NULL,hull=FALSE,f="mean",...)
           newform <- as.formula(paste("lhs ~", rhs), env=.GlobalEnv)
           newform[[2L]] <- formula[[2L]]
           formula <- newform
-        }    
+        }
 
         # Check for logBound transformations
         if (substr(tlCur,1,9)=="logBound(") {
           # if found, check number of terms needed.
           varname <- substr(tlCur,start=10,stop=nchar(tlCur)-1)
-          subform <- as.formula(paste("~",varname,"-1"))          
+          subform <- as.formula(paste("~",varname,"-1"))
           toLT <- as.vector(model.matrix(subform,data=data))
           testLT <- as.matrix(logitBound(toLT))
           # revise formula so logBound() call includes "forceAny" as needed
@@ -186,36 +227,50 @@ cfMake <- function(formula=NULL,data,nscen=1,names=NULL,hull=FALSE,f="mean",...)
           formula <- newform
         }
       }
-      
+
       xscen$model <- formula
     }
     class(xscen) <- c("list","counterfactual")
 
     # Check for extrapolation
     if (hull&&(!is.null(formula))&&(!is.null(data))) {
-        require(WhatIf)
-        wi <- whatif(formula=formula, data=data, cfact=xscen$x)        
-        xscen$extrapolatex <- !wi$in.hull
-        wi <- whatif(formula=formula, data=data, cfact=xscen$xpre)
-        xscen$extrapolatexpre <- !wi$in.hull
-        xscen$extrapolatefd <- xscen$extrapolatex|xscen$extrapolatexpre
-        xscen$data <- data
-        if (any(c(xscen$extrapolatex,xscen$extrapolatexpre,xscen$extrapolatefd)==FALSE)) {
-            warning("Some counterfactuals involve extrapolation outside the convex hull")
-            if (any(xscen$extrapolatex==FALSE)) {
-                print(c("x scenarios:  ",row.names(x)[xscen$extrapolatex]))
-            }
-            if (any(xscen$extrapolatexpre==FALSE)) {
-                print(c("xpre scenarios:  ",row.names(xpre)[xscen$extrapolatexpre]))
-            }
-            if (any(xscen$extrapolatefd==FALSE)) {
-                print(c("first diff scenarios:  ",row.names(x)[xscen$extrapolatefd]))
-            }
-        }
+      xscen <- findExtrapoled(xscen, data)
     }
 
     xscen
   }
+
+
+findExtrapoled <- function(cfscen, data) {
+  require(WhatIf)
+  # First (re)assemble the data. This allows for the function to be called with
+  # a counterfactual object and any data.frame that contains the original data.
+  # Returns a modified counterfactual object containing hull calculations
+  fterms <- all.vars(cfscen$model)
+  df <- na.omit(subset(data, select=fterms))
+
+  wi <- whatif(formula=cfscen$model, data=df, cfact=cfscen$x)
+  cfscen$extrapolatex <- !wi$in.hull
+  wi <- whatif(formula=cfscen$model, data=df, cfact=cfscen$xpre)
+  cfscen$extrapolatexpre <- !wi$in.hull
+  cfscen$extrapolatefd <- cfscen$extrapolatex|cfscen$extrapolatexpre
+  cfscen$data <- df
+  if (any(c(cfscen$extrapolatex,cfscen$extrapolatexpre,cfscen$extrapolatefd)==FALSE)) {
+    warning("Some counterfactuals involve extrapolation outside the convex hull")
+    if (any(cfscen$extrapolatex==FALSE)) {
+      print(c("x scenarios:  ",row.names(cfscen$x)[cfscen$extrapolatex]))
+    }
+    if (any(cfscen$extrapolatexpre==FALSE)) {
+      print(c("xpre scenarios:  ",row.names(cfscen$xpre)[cfscen$extrapolatexpre]))
+    }
+    if (any(cfscen$extrapolatefd==FALSE)) {
+      print(c("first diff scenarios:  ",row.names(cfscen$x)[cfscen$extrapolatefd]))
+    }
+  }
+  cfscen
+}
+
+
 
 cfChange <- function(xscen,covname,x=NULL,xpre=NULL,scen=1) {
     if (!is.null(x))
@@ -243,7 +298,7 @@ cfChange <- function(xscen,covname,x=NULL,xpre=NULL,scen=1) {
         }
 
     }
-        
+
     xscen
   }
 

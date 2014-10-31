@@ -1,5 +1,6 @@
 \name{cffns}
 \alias{cfMake}
+\alias{cfMake2}
 \alias{cfChange}
 \alias{cfName}
 \title{Create or modify a set of counterfactuals}
@@ -9,6 +10,8 @@
 }
 \usage{
 cfMake(formula=NULL, data, nscen=1, names=NULL, f=mean(), ...)
+
+cfMake2(formula, data, hull=TRUE, f=mean, fargs=NULL, ...)
 
 cfChange(xscen, covname, x, xpre=NULL, scen=1)
 
@@ -22,11 +25,13 @@ cfName(xscen, name, scen=1)
   \item{names}{string or string vector, the name(s) of the scenario(s),
     e.g., to label them on plots or tables; saved as the row name of the
   appropriate scenario}
+  \item{hull}{determines whether to identify extrapolated values by calculating the convex hull. Default is \code{TRUE}}
   \item{f}{function, applied to columns of covariate data to produce the baseline
     counterfactual; default is to take the mean of each covariate}
-  \item{\dots}{additional inputs to \code{f}}
+  \item{fargs}{In cfMake2, list of optional arguments to f}
+  \item{\dots}{In cfMake, additional inputs to \code{f}; In cfMake2, named vectors that be expanded into the full counterfactual scenario}
   \item{xscen}{list object, containing an pre-initialized set of counterfactuals,
-    as output by \code{cfMake} or modified by \code{cfChange} or \code{cfName}}
+    as output by \code{cfMake, cfMake2} or modified by \code{cfChange} or \code{cfName}}
   \item{x}{scalar, a hypothetical value of a covariate}
   \item{covname}{string or scalar, the name or number of a column
     (covariate) in a counterfactual dataset which the user wishes to
@@ -34,12 +39,12 @@ cfName(xscen, name, scen=1)
   \item{xpre}{scalar, a hypothetical initial value of a covariate, for
     calculating first differences}
   \item{scen}{scalar or string, the row (number or name) of the scenario
-    to be modified} 
+    to be modified}
 }
 \details{
 Useful for creating counterfactuals to input into the post-estimation simulation
 functions of the \code{simcf} package (e.g., for plotting with the
-\code{tile} package) or into \code{whatif} in the \code{WhatIf} package. 
+\code{tile} package) or into \code{whatif} in the \code{WhatIf} package.
 }
 \value{
   A list object containing the following components:
@@ -55,9 +60,9 @@ functions of the \code{simcf} package (e.g., for plotting with the
 
 # Linear, Poisson, and Negative Binomial regression using UScrime data
 
-# Uses simcf and ropeladders to show how the expected crime rate varies 
-# in response to changes in 7 covariates under each of four estimation 
-# methods.  
+# Uses simcf and ropeladders to show how the expected crime rate varies
+# in response to changes in 7 covariates under each of four estimation
+# methods.
 
 # See example for ropeladder in package tile for more plots
 
@@ -164,7 +169,7 @@ trace2 <- ropeladder(x=mm1.qoi$pe,
 
 trace3 <- ropeladder(x=po1.qoi$pe,
                      lower=po1.qoi$lower,
-                     upper=po1.qoi$upper,                   
+                     upper=po1.qoi$upper,
                      plot=3
                      )
 
@@ -177,7 +182,7 @@ trace4 <- ropeladder(x=nb1.qoi$pe,
 rug1 <- rugTile(x = UScrime$y - mean(UScrime$y),
                 plot = 1:4
                 )
-                
+
 vertmark <- linesTile(x = c(0,0),
                       y = c(0,1),
                       lty = "solid",
@@ -187,7 +192,7 @@ vertmark <- linesTile(x = c(0,0),
 # Create plot
 tc <- tile(trace1, trace2, trace3, trace4,
            rug1, vertmark,
-           #output = list(file = "ropeladderEx1"),          
+           #output = list(file = "ropeladderEx1"),
            xaxistitle = list(labels="E(crime rate per 100,000)"),
            topaxis= list(at = mean(UScrime$y)*c(0.5, 1, 1.5, 2) - mean(UScrime$y),
                          labels = c("0.5x","1x","1.5x","2x"),
