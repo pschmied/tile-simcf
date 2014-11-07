@@ -1,6 +1,8 @@
-## Functions to fortify simulation results into ggplot2-friendly, "tidy" data.frames: http://vita.had.co.nz/papers/tidy-data.pdf
+## Functions to fortify simulation results into ggplot2-friendly,
+## "tidy" data.frames: http://vita.had.co.nz/papers/tidy-data.pdf
 
-## Note, I'm implementing these as I encounter new simresult types. I anticipate refactoring these as common strategies emerge
+## Note, I'm implementing these as I encounter new simresult types. I
+## anticipate refactoring these as common strategies emerge
 
 
 fortify.oprobitsim <- function(result, counterfactual, keep=NULL) {
@@ -24,9 +26,9 @@ fortify.oprobitsim <- function(result, counterfactual, keep=NULL) {
 }
 
 fortify.logitsim <- function(result, counterfactual, keep=NULL) {
-  ## Takes a logitsim result and counterfactual object, and
-  ## optionally a vector manually defining which counterfactual
-  ## variables to retain; returns an easily plottable dataframe.
+  ## Takes a logitsim result and counterfactual object, and optionally
+  ## a vector manually defining which counterfactual variables to
+  ## retain; returns an easily plottable dataframe.
 
   if (!is.null(keep)) {
     cfgrid <- subset(counterfactual$x, select=keep)
