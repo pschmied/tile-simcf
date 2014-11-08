@@ -4,9 +4,12 @@
 ## Note, I'm implementing these as I encounter new simresult types. I
 ## anticipate refactoring these as common strategies emerge
 
+######################################
+## Simulation results that are "wide"
+######################################
 
-fortify.oprobitsim <- function(result, counterfactual, keep=NULL) {
-  ## Takes an oprobitsim result and counterfactual object, and
+fortify.widesim <- function(result, counterfactual, keep=NULL) {
+  ## Takes a wide-format result and counterfactual object, and
   ## optionally a vector manually defining which counterfactual
   ## variables to retain; returns an easily plottable dataframe.
 
@@ -25,10 +28,19 @@ fortify.oprobitsim <- function(result, counterfactual, keep=NULL) {
   cbind(pe, upper, lower) # Return tidy data
 }
 
-fortify.logitsim <- function(result, counterfactual, keep=NULL) {
-  ## Takes a logitsim result and counterfactual object, and optionally
-  ## a vector manually defining which counterfactual variables to
-  ## retain; returns an easily plottable dataframe.
+fortify.oprobitsim <- function(result, counterfactual, keep=NULL) {
+  ## Fortifies an oprobitsim result
+  fortify.widesim(result, counterfactual, keep=NULL)
+}
+
+######################################
+## Simulation results that are "long"
+######################################
+
+fortify.longsim <- function(result, counterfactual, keep=NULL) {
+  ## Takes a long-format result and counterfactual object, and
+  ## optionally a vector manually defining which counterfactual
+  ## variables to retain; returns an easily plottable dataframe.
 
   if (!is.null(keep)) {
     cfgrid <- subset(counterfactual$x, select=keep)
@@ -38,4 +50,14 @@ fortify.logitsim <- function(result, counterfactual, keep=NULL) {
     cfgrid <- subset(counterfactual$x, select=cfset)
   }
   cbind(cfgrid, result) # Return tidy data
+}
+
+fortify.logitsim <- function(result, counterfactual, keep=NULL) {
+  ## fortifies a logitsim result
+  fortify.longsim(result, counterfactual, keep=NULL)
+}
+
+fortify.loglinsim <- function(result, counterfactual, keep=NULL) {
+  ## fortifies a loglinsim result
+  fortify.longsim(result, counterfactual, keep=NULL)
 }

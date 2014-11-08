@@ -1,12 +1,15 @@
 \name{fortfns}
 \alias{fortify.oprobitsim}
 \alias{fortify.logitsim}
+\alias{fortify.loglinsim}
 \title{Fortify simcf results}
 \description{
   Functions that fortify simcf results into "tidy" data.frames for ggplot2
 }
 \usage{
 fortify.logitsim(result, counterfactual, keep=NULL)
+
+fortify.loglinsim(result, counterfactual, keep=NULL)
 
 fortify.oprobitsim(result, counterfactual, keep=NULL)
 }
