@@ -119,7 +119,7 @@ cfFactorial <- function(...,formula=NULL,data=NULL,names=NULL,hull=FALSE,f="mean
     xscen
 }
 
-cfMake2 <- function(formula, data, hull=TRUE,
+cfMake2 <- function(formula, data, hull=FALSE,
                     f=mean, fargs=NULL, ...) {
     # Takes a formula, data referenced in formula, and optionally a
     # function to apply to the data, optional args to f, and an

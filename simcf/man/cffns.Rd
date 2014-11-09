@@ -11,7 +11,7 @@
 \usage{
 cfMake(formula=NULL, data, nscen=1, names=NULL, f=mean(), ...)
 
-cfMake2(formula, data, hull=TRUE, f=mean, fargs=NULL, ...)
+cfMake2(formula, data, hull=FALSE, f=mean, fargs=NULL, ...)
 
 cfChange(xscen, covname, x, xpre=NULL, scen=1)
 
