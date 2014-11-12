@@ -129,8 +129,7 @@ cfMake2 <- function(formula, data, hull=FALSE,
 
     # First assemble the data
     fterms <- all.vars(formula)
-    df <- subset(data, select=fterms)
-    df <- na.omit(df)
+    d <- na.omit(subset(data, select=fterms))
 
     # Get all combinations of scenarios
     scenarios <- list(...)
@@ -138,7 +137,7 @@ cfMake2 <- function(formula, data, hull=FALSE,
     nscen <- length(scenexp[,1])
 
     # Apply our function to populate xpre
-    xf <- apply(df, 2, f) # assumes f returns 1 obs/obs
+    xf <- lapply(d, f) # assumes f returns 1 obs/obs
     xpre <- as.data.frame(t(xf))[rep(1, nscen),]
 
     # Now create a dataframe with the appropriate counterfactual
@@ -152,7 +151,7 @@ cfMake2 <- function(formula, data, hull=FALSE,
 
     # Check for extrapolation
     if (hull&&(!is.null(formula))&&(!is.null(data))) {
-      cfscen <- findExtrapoled(cfscen, df)
+      cfscen <- findExtrapoled(cfscen, d)
     }
 
     cfscen
