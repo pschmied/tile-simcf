@@ -137,7 +137,7 @@ cfMake2 <- function(formula, data, hull=FALSE,
     nscen <- length(scenexp[,1])
 
     # Apply our function to populate xpre
-    xf <- lapply(d, f) # assumes f returns 1 obs/obs
+    xf <- as.data.frame(sapply(d, f)) # assumes f returns 1 obs/obs
     xpre <- as.data.frame(t(xf))[rep(1, nscen),]
 
     # Now create a dataframe with the appropriate counterfactual
